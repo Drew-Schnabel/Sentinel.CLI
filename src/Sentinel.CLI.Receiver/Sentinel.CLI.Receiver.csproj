@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentinel.CLI.Receiver</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" />
+    <PackageReference Include="Google.Protobuf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sentinel.CLI.Application\Sentinel.CLI.Application.csproj" />
+    <ProjectReference Include="..\Sentinel.CLI.Domain\Sentinel.CLI.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Sentinel.CLI.Receiver.Tests" />
+  </ItemGroup>
+
+  <!-- Canonical OTLP contracts (vendored from open-telemetry/opentelemetry-proto).
+       Message protos generate types only; the collector service protos also
+       generate the server base classes we override. -->
+  <ItemGroup>
+    <Protobuf Include="Protos\**\*.proto" ProtoRoot="Protos" GrpcServices="None" />
+    <Protobuf Update="Protos\opentelemetry\proto\collector\**\*.proto" GrpcServices="Both" />
+  </ItemGroup>
+
+</Project>

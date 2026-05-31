@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Sentinel": {
+      "commandName": "Project"
+    },
+    "Sentinel (--demo)": {
+      "commandName": "Project",
+      "commandLineArgs": "--demo"
+    }
+  }
+}

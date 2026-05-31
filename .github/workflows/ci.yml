@@ -1,0 +1,71 @@
+# CI: build + test on every PR and push to main.
+#
+# Design notes (see docs/ops/release-engineering.md for the full rationale):
+#  - Action versions are pinned to commit SHAs (the trailing # vX.Y.Z is the
+#    human-readable tag the SHA resolves to). Re-pin deliberately on upgrade.
+#  - actions/setup-dotnet reads the SDK version from global.json (no version: input),
+#    so CI and local builds use the same pinned 10.0.300 SDK + rollForward policy.
+#  - Restore runs in --locked-mode: it FAILS if any packages.lock.json is stale.
+#    This requires lock files to be committed first (see release-engineering.md
+#    "CPM + locked-mode" gotcha). Until lock files exist, locked-mode restore is a
+#    no-op-then-error; do the one-time lock generation before merging this workflow.
+#  - TreatWarningsAsErrors=true is set in Directory.Build.props, so a warning fails
+#    the build here without any extra flag.
+
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Deny-all at the top; grant the minimum per job.
+permissions: {}
+
+# Cancel superseded runs on the same ref. Safe for CI (no external state mutated).
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: build + test
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup .NET (from global.json)
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
+        with:
+          global-json-file: global.json
+          cache: true
+          # Cache key is derived from the committed lock files. Requires
+          # <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>.
+          cache-dependency-path: '**/packages.lock.json'
+
+      - name: Restore (locked mode)
+        run: dotnet restore Sentinel.CLI.sln --locked-mode
+
+      - name: Build (Release, no restore, warnings = errors)
+        run: dotnet build Sentinel.CLI.sln --configuration Release --no-restore
+
+      - name: Test (all projects, no build)
+        run: >
+          dotnet test Sentinel.CLI.sln
+          --configuration Release
+          --no-build
+          --logger "trx;LogFileName=test-results.trx"
+          --collect "XPlat Code Coverage"
+          --results-directory ./artifacts/test-results
+
+      - name: Upload test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: test-results
+          path: ./artifacts/test-results
+          retention-days: 7

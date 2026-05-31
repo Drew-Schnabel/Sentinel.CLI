@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Load generator": {
+      "commandName": "Project"
+    },
+    "Load generator (--count=20)": {
+      "commandName": "Project",
+      "commandLineArgs": "--count=20"
+    }
+  }
+}

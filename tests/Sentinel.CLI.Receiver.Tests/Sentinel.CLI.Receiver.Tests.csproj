@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentinel.CLI.Receiver.Tests</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Grpc.Net.Client" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Sentinel.CLI.Application\Sentinel.CLI.Application.csproj" />
+    <ProjectReference Include="..\..\src\Sentinel.CLI.Infrastructure\Sentinel.CLI.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Sentinel.CLI.Receiver\Sentinel.CLI.Receiver.csproj" />
+    <ProjectReference Include="..\..\src\Sentinel.CLI.Tui\Sentinel.CLI.Tui.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

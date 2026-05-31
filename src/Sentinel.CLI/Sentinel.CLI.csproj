@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Sentinel.CLI</RootNamespace>
+    <AssemblyName>sentinel</AssemblyName>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>sentinel</ToolCommandName>
+    <IsPackable>true</IsPackable>
+
+    <!-- nuget.org listing metadata. PackageIcon is intentionally omitted (no asset yet; a missing
+         file fails the pack with NU5046). License + RepositoryUrl are left for the owner to set
+         (no license chosen yet; repo URL unknown until pushed). Static version for now — switch
+         to MinVer (git-tag driven) once the repo is initialized and pushed. -->
+    <PackageId>Sentinel.CLI</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Drew Schnabel</Authors>
+    <Title>Sentinel — OpenTelemetry terminal debugger</Title>
+    <Description>Local-first OpenTelemetry receiver with an interactive terminal UI. Point any OTLP exporter at localhost and watch traces, logs, and metrics live in your terminal — installed as a single dotnet tool, no Docker.</Description>
+    <PackageTags>opentelemetry;otlp;tracing;observability;cli;tui;terminal;dotnet-tool;debugging</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\</PackageOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+  <!-- Hosting + configuration binder come from the ASP.NET Core shared framework,
+       which the OTLP receiver (Kestrel + gRPC) also requires. -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sentinel.CLI.Application\Sentinel.CLI.Application.csproj" />
+    <ProjectReference Include="..\Sentinel.CLI.Infrastructure\Sentinel.CLI.Infrastructure.csproj" />
+    <ProjectReference Include="..\Sentinel.CLI.Receiver\Sentinel.CLI.Receiver.csproj" />
+    <ProjectReference Include="..\Sentinel.CLI.Tui\Sentinel.CLI.Tui.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Sentinel.CLI.Tests" />
+  </ItemGroup>
+
+</Project>

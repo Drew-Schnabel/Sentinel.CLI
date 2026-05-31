@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Sentinel.LoadGenerator</RootNamespace>
+    <AssemblyName>sentinel-load</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- Receiver carries the generated OTLP message types + the ASP.NET shared framework
+       it depends on; the generator only sends OTLP/HTTP, so it needs both at runtime. -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Sentinel.CLI.Receiver\Sentinel.CLI.Receiver.csproj" />
+  </ItemGroup>
+
+</Project>

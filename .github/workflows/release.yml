@@ -1,0 +1,113 @@
+# Release: pack the `sentinel` global tool and publish to nuget.org on a version tag.
+#
+# Trigger: a pushed tag matching v*  (e.g. v0.3.0, v1.0.0-rc.1). A HUMAN pushes the
+# tag; this workflow does not create tags, so there is no tag-collision idempotency
+# concern. Idempotency on re-run is provided by `dotnet nuget push --skip-duplicate`.
+#
+# Versioning: MinVer derives the package version from the tag. The tag IS the source
+# of truth. <MinVerTagPrefix>v</MinVerTagPrefix> must be set in the host csproj (see
+# release-engineering.md). A tag v1.2.3 -> package 1.2.3; an untagged commit ahead of
+# the last tag -> 1.2.4-alpha.0.N (pre-release height). fetch-depth: 0 is REQUIRED or
+# MinVer cannot see tag history and falls back to 0.0.0.
+#
+# ref_name note: on this TAG trigger, github.ref_name is the tag name (v1.2.3) and is
+# used correctly below for the release summary. The "ref_name means <PR>/merge" trap
+# only applies to pull_request events (handled in ci.yml via head_ref/base_ref).
+#
+# Publishing: nuget.org Trusted Publishing (OIDC) via NuGet/login — no long-lived API
+# key stored. The job requests id-token: write, exchanges the OIDC token for a 1-hour
+# nuget.org API key immediately before push. A trusted-publishing policy must be
+# configured on nuget.org (Owner + Repo + Workflow file "release.yml" + Environment
+# "release"). API-key fallback is documented in release-engineering.md.
+
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions: {}
+
+# Never cancel a publish mid-flight.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  pack-and-publish:
+    name: pack + publish to nuget.org
+    runs-on: ubuntu-24.04
+    # The 'release' GitHub environment gates this job behind required reviewers and
+    # scopes the trusted-publishing policy. Configure it under repo Settings >
+    # Environments. The nuget.org policy's Environment field must equal "release".
+    environment: release
+    permissions:
+      contents: read
+      id-token: write # required for OIDC token issuance (NuGet/login)
+    steps:
+      - name: Checkout (full history + tags for MinVer)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0 # MinVer needs all tags; shallow clone => version 0.0.0
+
+      - name: Setup .NET (from global.json)
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+
+      - name: Restore (locked mode)
+        run: dotnet restore Sentinel.CLI.sln --locked-mode
+
+      # Pack ONLY the tool project, not the solution. Domain/Application/Infrastructure/
+      # Tui are libraries; packing the solution would emit stray library nupkgs.
+      # (release-engineering.md also sets IsPackable=false on those as belt-and-braces.)
+      # MinVer computes the version from the tag during this step — no /p:Version needed.
+      - name: Pack tool (Release)
+        run: >
+          dotnet pack src/Sentinel.CLI/Sentinel.CLI.csproj
+          --configuration Release
+          --no-restore
+          --output ./artifacts/packages
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: nuget-package
+          path: ./artifacts/packages/*.*nupkg
+          retention-days: 30
+
+      # OIDC -> short-lived (1h) nuget.org API key. Request it immediately before push.
+      - name: NuGet login (OIDC -> temporary API key)
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          # nuget.org username (profile name), NOT email. Stored as a secret so the
+          # username is not leaked in logs.
+          user: ${{ secrets.NUGET_USER }}
+
+      # --skip-duplicate makes re-runs idempotent: re-pushing an already-published
+      # version is a no-op success instead of a hard failure. The .snupkg symbol
+      # package alongside the .nupkg is picked up automatically by dotnet nuget push.
+      - name: Push to nuget.org
+        run: >
+          dotnet nuget push "./artifacts/packages/*.nupkg"
+          --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+
+      - name: Write run summary
+        if: ${{ !cancelled() }}
+        run: |
+          {
+            echo "## Sentinel.CLI release"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Tag | \`${{ github.ref_name }}\` |"
+            echo "| Commit | \`${{ github.sha }}\` |"
+            echo "| Feed | nuget.org |"
+            echo "| Install | \`dotnet tool install -g Sentinel.CLI\` |"
+          } >> "$GITHUB_STEP_SUMMARY"

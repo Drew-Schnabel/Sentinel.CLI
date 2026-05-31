@@ -1,0 +1,50 @@
+## .NET / Visual Studio
+bin/
+obj/
+out/
+*.user
+*.suo
+*.userprefs
+.vs/
+.vscode/
+.idea/
+*.swp
+
+## Build outputs
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]uild/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## Test / coverage
+TestResults/
+*.coverage
+*.coveragexml
+coverage.*.xml
+.coverage/
+*.trx
+
+## Rider / Resharper
+*.DotSettings.user
+_ReSharper*/
+
+## NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+!**/packages/build/
+
+## OS / editor noise
+.DS_Store
+Thumbs.db
+
+## Local config
+*.local.json
+appsettings.*.local.json
+secrets.json
