@@ -18,8 +18,11 @@ x86/
 [Bb]uild/
 [Bb]in/
 [Oo]bj/
-[Ll]og/
-[Ll]ogs/
+# Anchored to repo root: these target a top-level build/runtime log folder, not
+# source directories. Unanchored, they wrongly match nested namespaces like
+# Domain/Telemetry/Logs/ and Protos/.../logs/.
+/[Ll]og/
+/[Ll]ogs/
 
 ## Test / coverage
 TestResults/
