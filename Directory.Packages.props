@@ -22,6 +22,11 @@
     <PackageVersion Include="Terminal.Gui" Version="2.4.3" />
   </ItemGroup>
 
+  <ItemGroup Label="Build">
+    <!-- Git-tag-driven versioning for the packed tool (host csproj only). -->
+    <PackageVersion Include="MinVer" Version="6.0.0" />
+  </ItemGroup>
+
   <ItemGroup Label="Otlp">
     <PackageVersion Include="Grpc.AspNetCore" Version="2.80.0" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.80.0" />

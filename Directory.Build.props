@@ -10,6 +10,9 @@
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Emit packages.lock.json per project so CI can restore in locked mode (reproducible
+         restores). Commit the lock files; regenerate by restoring after changing dependencies. -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <!-- Only the host (Sentinel.CLI) ships as a package — it overrides this to true. Libraries
          are bundled into the tool via ProjectReference, not published separately. -->
     <IsPackable>false</IsPackable>

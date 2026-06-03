@@ -9,16 +9,19 @@
     <IsPackable>true</IsPackable>
 
     <!-- nuget.org listing metadata. PackageIcon is intentionally omitted (no asset yet; a missing
-         file fails the pack with NU5046). License + RepositoryUrl are left for the owner to set
-         (no license chosen yet; repo URL unknown until pushed). Static version for now — switch
-         to MinVer (git-tag driven) once the repo is initialized and pushed. -->
+         file fails the pack with NU5046). License (PackageLicenseExpression) is still unset — no
+         license chosen yet. Version is derived by MinVer from git tags (prefix "v"): a tag v1.2.3
+         produces package 1.2.3; an untagged commit produces a 0.0.0-alpha.0.N pre-release. -->
     <PackageId>Sentinel.CLI</PackageId>
-    <Version>0.1.0</Version>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
     <Authors>Drew Schnabel</Authors>
     <Title>Sentinel — OpenTelemetry terminal debugger</Title>
     <Description>Local-first OpenTelemetry receiver with an interactive terminal UI. Point any OTLP exporter at localhost and watch traces, logs, and metrics live in your terminal — installed as a single dotnet tool, no Docker.</Description>
     <PackageTags>opentelemetry;otlp;tracing;observability;cli;tui;terminal;dotnet-tool;debugging</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/Drew-Schnabel/Sentinel.CLI</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Drew-Schnabel/Sentinel.CLI</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\</PackageOutputPath>
   </PropertyGroup>
 
@@ -41,6 +44,11 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Sentinel.CLI.Tests" />
+  </ItemGroup>
+
+  <!-- Git-tag-driven versioning. Build-only (PrivateAssets=all) so it never flows to consumers. -->
+  <ItemGroup>
+    <PackageReference Include="MinVer" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>
